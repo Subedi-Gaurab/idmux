@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>idmux</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f172a;
+      --panel: #111827;
+      --border: #334155;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Segoe UI, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    button:hover { border-color: var(--accent); }
+    code, pre { font-family: Cascadia Code, Consolas, monospace; }
+
+    .layout {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .topbar h1 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .topbar p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 0;
+    }
+
+    .sidebar,
+    .content {
+      padding: 18px;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: rgba(17, 24, 39, 0.7);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .session-list,
+    .credential-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .session-button {
+      text-align: left;
+      width: 100%;
+      padding: 10px;
+    }
+
+    .session-button.active {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .blocks {
+      display: grid;
+      gap: 14px;
+    }
+
+    .block {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .block.running { border-color: var(--accent); }
+    .block.completed { border-color: var(--success); }
+    .block.failed, .block.cancelled { border-color: var(--danger); }
+
+    .block header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .block meta {
+      display: block;
+    }
+
+    .stream {
+      margin-top: 10px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 220px;
+      overflow: auto;
+      margin: 0;
+    }
+
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="topbar">
+      <div>
+        <h1>idmux</h1>
+        <p id="daemon-summary">Loading…</p>
+      </div>
+      <div class="muted">
+        <div id="daemon-actions"></div>
+      </div>
+    </div>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="panel">
+          <h2>Credentials</h2>
+          <div id="credentials" class="credential-list"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Sessions</h2>
+          <div id="sessions" class="session-list"></div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <div class="panel">
+          <h2 id="session-title">No session selected</h2>
+          <div id="session-meta" class="muted"></div>
+          <div id="session-actions" style="margin-top:10px;"></div>
+        </div>
+
+        <div id="blocks" class="blocks"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

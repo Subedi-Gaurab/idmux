@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Idmux.Cli/Idmux.Cli.csproj" />
+    <Project Path="src/Idmux.Core/Idmux.Core.csproj" />
+    <Project Path="src/Idmux.Daemon/Idmux.Daemon.csproj" />
+  </Folder>
+</Solution>
