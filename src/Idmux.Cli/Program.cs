@@ -1125,7 +1125,11 @@ internal static class HelpText
         NOTES
           Implicit (default) sessions created by `idmux run` without --session
           appear here as well. Their names look like
-          `default-<userToken>` or `default-<userToken>-netonly`.
+          `default-<userToken>` or, for a foreign-domain identity,
+          `default-<domain>-<userToken>-netonly` (for example
+          `default-fabrikam-svc-netonly`). Each implicit session belongs to
+          exactly one identity; if a name is already held by another
+          identity, idmux appends `-2`, `-3`, and so on.
         """;
 
     private const string SessionDestroy = """

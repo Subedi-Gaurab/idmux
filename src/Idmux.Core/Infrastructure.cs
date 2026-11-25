@@ -260,4 +260,39 @@ public static class IdentityHelpers
         var (_, userName) = SplitIdentity(identity);
         return Slugify(userName);
     }
+
+    /// <summary>
+    /// Base name of the implicit session that <c>idmux run</c> uses when no
+    /// --session is given. Foreign-domain identities include the domain so that
+    /// <c>FABRIKAM\svc</c> and <c>CONTOSO\svc</c> never share a session.
+    /// </summary>
+    public static string DefaultSessionName(string identity, bool netOnly, IdmuxConfig config)
+    {
+        var token = DisplayToken(identity, config);
+        var hasDisplay = config.Identities.TryGetValue(identity, out var display) && !string.IsNullOrWhiteSpace(display.Display);
+        var (domain, _) = SplitIdentity(identity);
+        if (!hasDisplay && IsForeignDomain(identity) && !string.IsNullOrWhiteSpace(domain))
+        {
+            token = $"{Slugify(domain)}-{token}";
+        }
+
+        return $"default-{token}{(netOnly ? "-netonly" : string.Empty)}";
+    }
+
+    /// <summary>
+    /// True if two identity strings name the same account (case-insensitive,
+    /// whitespace around the domain separator ignored).
+    /// </summary>
+    public static bool SameIdentity(string? left, string? right)
+    {
+        if (left is null || right is null)
+        {
+            return false;
+        }
+
+        var (leftDomain, leftUser) = SplitIdentity(left.Trim());
+        var (rightDomain, rightUser) = SplitIdentity(right.Trim());
+        return string.Equals(leftDomain, rightDomain, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(leftUser, rightUser, StringComparison.OrdinalIgnoreCase);
+    }
 }

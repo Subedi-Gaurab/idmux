@@ -895,19 +895,36 @@ internal sealed class DaemonRuntime(IdmuxConfig config, DaemonLog log) : IAsyncD
             ? IdentityHelpers.CurrentUserName
             : request.Identity!;
 
-        var defaultSessionName = $"default-{IdentityHelpers.DisplayToken(identity, _config)}{(request.NetOnly || IdentityHelpers.IsForeignDomain(identity) ? "-netonly" : string.Empty)}";
-        return _sessions.GetOrAdd(defaultSessionName, _ => new SessionContext(new SessionRecord
+        var netOnly = request.NetOnly || IdentityHelpers.IsForeignDomain(identity);
+        var baseName = IdentityHelpers.DefaultSessionName(identity, netOnly, _config);
+
+        // Never reuse a session that belongs to a different identity. If the
+        // base name is already held by another identity (for example two
+        // identities share a configured display name), use the next free
+        // numbered name instead.
+        for (var attempt = 1; ; attempt++)
         {
-            Id = $"s_{Guid.NewGuid():N}"[..10],
-            Name = defaultSessionName,
-            Identity = identity,
-            NetOnly = request.NetOnly || IdentityHelpers.IsForeignDomain(identity),
-            Persistent = false,
-            Implicit = true,
-            State = RunspaceState.None,
-            CreatedAt = DateTimeOffset.UtcNow,
-            LastUsedAt = DateTimeOffset.UtcNow
-        }));
+            var name = attempt == 1 ? baseName : $"{baseName}-{attempt}";
+            var context = _sessions.GetOrAdd(name, _ => new SessionContext(new SessionRecord
+            {
+                Id = $"s_{Guid.NewGuid():N}"[..10],
+                Name = name,
+                Identity = identity,
+                NetOnly = netOnly,
+                Persistent = false,
+                Implicit = true,
+                State = RunspaceState.None,
+                CreatedAt = DateTimeOffset.UtcNow,
+                LastUsedAt = DateTimeOffset.UtcNow
+            }));
+
+            if (context.Session.Implicit
+                && context.Session.NetOnly == netOnly
+                && IdentityHelpers.SameIdentity(context.Session.Identity, identity))
+            {
+                return context;
+            }
+        }
     }
 
     /// <summary>
